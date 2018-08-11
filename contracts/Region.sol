@@ -20,8 +20,8 @@ contract Region {
         string ipfsHash;
     }
 
-    Reg[] private regions;
-    Handout[] private handouts;
+    Reg[] public regions;
+    Handout[] public handouts;
     
     mapping(address => Handout) private fetched;
 
@@ -33,8 +33,8 @@ contract Region {
     }
 
     function getRegion(uint _regionId) public payable returns (string) {
-        require(_regionId < regions.length, "Invalid Region Id");
-        require(uint(msg.value) != regions[_regionId].accessCost, "Not right acces cost");
+        require(_regionId >= regions.length, "Invalid Region Id");
+        require(uint(msg.value) != regions[_regionId].accessCost, "Not right access cost");
         
         Reg memory region = regions[_regionId];
         for(uint i = 0; i < region.contributors.length; i++) {
@@ -46,7 +46,6 @@ contract Region {
     }
 
     function createRegion(string _ipfsHash) public returns (uint) {
-        require(bytes(_ipfsHash).length == 0, "Invalid IPFS Hash");
         regions.length++;
         regions[regions.length - 1].ipfsHash = _ipfsHash;
         regions[regions.length - 1].accessCost = initialAccessCost;
