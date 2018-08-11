@@ -1,26 +1,152 @@
-import EmbarkJS from 'Embark/EmbarkJS';
-import Region from 'Embark/contracts/Region';
-// import your contracts
-// e.g if you have a contract named SimpleStorage:
-//import SimpleStorage from 'Embark/contracts/SimpleStorage';
+import Web3 from 'web3';
 
-var data = [
-    {"latitude1":10, "longitude1":20, "latitude2":30, "longitude2":40},
-    {"latitude1":30, "longitude1":40, "latitude2":50, "longitude2":55},
-    {"latitude1":50, "longitude1":55, "latitude2":60, "longitude2":65},
-];
+if (typeof web3 !== 'undefined') {
+    web3 = new Web3(web3.currentProvider);
+} else {
+// set the provider you want from Web3.providers
+    web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+}
 
-// for now, we'll be assuming that our world is split into 9 regions
-var startLatitude = 12.897835;
-var startLongitude = 77.576369;
-
-var latitudeDiff = -0.004531999999999907;
-var longitudeDiff = 0.01386200000000315;
+var MyContract = web3.eth.contract([
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_ipfsHash",
+				"type": "string"
+			}
+		],
+		"name": "addHandout",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_ipfsHash",
+				"type": "string"
+			}
+		],
+		"name": "createRegion",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [],
+		"name": "getHandout",
+		"outputs": [
+			{
+				"name": "handoutId",
+				"type": "uint256"
+			},
+			{
+				"name": "contributor",
+				"type": "address"
+			},
+			{
+				"name": "ipfsHash",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_regionId",
+				"type": "uint256"
+			}
+		],
+		"name": "getRegion",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_regionId",
+				"type": "uint256"
+			},
+			{
+				"name": "ipfsHash",
+				"type": "string"
+			}
+		],
+		"name": "verifyHandout",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getMyHandout",
+		"outputs": [
+			{
+				"name": "handoutId",
+				"type": "uint256"
+			},
+			{
+				"name": "contributor",
+				"type": "address"
+			},
+			{
+				"name": "ipfsHash",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_regionId",
+				"type": "uint256"
+			}
+		],
+		"name": "getRegionCost",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
+]);
+    var contractInstance = MyContract.at("0xca8455adb750c829078b7759617c624a68bb8bb9");
 
 function getData(regionId) {
     // var regionId = getRegionId(latitude, longitude);
     // var hash = Region.getRegion(regionId);
-    // //
     return data;
 }
 
@@ -61,7 +187,6 @@ function pushDataToIPFS(dataAggregate) {
         };
         json['data'].push(data);
     }
-    console.log(json);
     let hash = '';
     ipfs.files.add(Buffer.from(JSON.stringify(json)), (err, result) => {
         if(err) {
@@ -127,7 +252,12 @@ window.onload = function() {
             console.log(count);
             // after aggregating for five minutes, push to ipfs
             if (count >= 20) {
-                pushDataToIPFS(dataAggregate);
+                var hash = pushDataToIPFS(dataAggregate);
+                MyContract.addHandout(hash, {
+                    from: web3.accounts[0],
+                    gas: MyContract.addHandout.estimateGas(hash, {from: web3.eth.accounts[0]}) + 1000, 
+                    gasPrice: 5
+                });
                 dataAggregate = [];
                 count = 0;
             }
