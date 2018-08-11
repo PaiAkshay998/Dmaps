@@ -1,13 +1,25 @@
 import Web3 from 'web3';
 
 if (typeof web3 !== 'undefined') {
-    web3 = new Web3(web3.currentProvider);
+    var web3 = new Web3(web3.currentProvider);
 } else {
 // set the provider you want from Web3.providers
-    web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 }
 
-var MyContract = web3.eth.contract([
+var startLatitude = 12.897835;
+var startLongitude = 77.576369;
+
+var latitudeDiff = -0.004531999999999907;
+var longitudeDiff = 0.01386200000000315;
+
+var data = [
+    {"latitude1":10, "longitude1":20, "latitude2":30, "longitude2":40},
+    {"latitude1":30, "longitude1":40, "latitude2":50, "longitude2":55},
+    {"latitude1":50, "longitude1":55, "latitude2":60, "longitude2":65},
+];
+
+var MyContract = new web3.eth.Contract([
 	{
 		"constant": false,
 		"inputs": [
@@ -142,7 +154,7 @@ var MyContract = web3.eth.contract([
 		"type": "function"
 	}
 ]);
-    var contractInstance = MyContract.at("0xca8455adb750c829078b7759617c624a68bb8bb9");
+    MyContract.options.address = "0xca8455adb750c829078b7759617c624a68bb8bb9";
 
 function getData(regionId) {
     // var regionId = getRegionId(latitude, longitude);
@@ -236,7 +248,7 @@ window.onload = function() {
         });
         var dataAggregate = []; 
         var count = 0;
-        setInterval(function() {
+        setInterval(async function() {
             var contribEndPosLatitude, contribEndPosLongitude;
             navigator.geolocation.getCurrentPosition(function showPosition(position) {
                 contribEndPosLatitude = position.coords.latitude;
@@ -252,10 +264,11 @@ window.onload = function() {
             console.log(count);
             // after aggregating for five minutes, push to ipfs
             if (count >= 20) {
+                let accounts = await web3.eth.getAccounts();
                 var hash = pushDataToIPFS(dataAggregate);
                 MyContract.addHandout(hash, {
-                    from: web3.accounts[0],
-                    gas: MyContract.addHandout.estimateGas(hash, {from: web3.eth.accounts[0]}) + 1000, 
+                    from: accounts[0],
+                    gas: await MyContract.methods.addHandout.estimateGas(hash, {from: web3.eth.accounts[0]}) + 1000, 
                     gasPrice: 5
                 });
                 dataAggregate = [];
