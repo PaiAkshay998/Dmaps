@@ -53,12 +53,12 @@ contract Region {
         return regions.length;
     }
 
-    function _updateRegion(address _contributor, uint _regionId) private {
+    function _updateRegion(address _contributor, uint _regionId, string _ipfsHash) private {
         require(_regionId < regions.length, "Invalid Region");
 
         bool flag = false;
         regions[_regionId].totalContributions++;
-        
+        regions[_regionId].ipfsHash = _ipfsHash;
         for(uint i = 0; i < regions[_regionId].contributors.length; i++) {
             if(regions[_regionId].contributors[i].userAddress == _contributor) {
                 regions[_regionId].contributors[i].numberOfContribs++;
@@ -88,8 +88,8 @@ contract Region {
         handouts.length--;
     }
 
-    function verifyHandout(uint _regionId) private {
+    function verifyHandout(uint _regionId, string ipfsHash) private {
         require(fetched[msg.sender].handoutId != 0, "Fetched no contribution");
-        _updateRegion(fetched[msg.sender].owner, _regionId);
+        _updateRegion(fetched[msg.sender].owner, _regionId, ipfsHash);
     }
 }
