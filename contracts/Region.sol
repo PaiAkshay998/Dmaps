@@ -38,7 +38,7 @@ contract Region {
         
         Reg memory region = regions[_regionId];
         for(uint i = 0; i < region.contributors.length; i++) {
-            uint amount = region.accessCost/region.contributors[i].numberOfContribs;
+            uint amount = (region.accessCost*region.contributors[i].numberOfContribs)/region.totalContributions;
             region.contributors[i].userAddress.transfer(amount);
         }
 
@@ -78,7 +78,7 @@ contract Region {
     }
 
     function getHandout() public returns (uint handoutId, address contributor, string ipfsHash) {
-        require(fetched[msg.sender].handoutId == 0, "Already Fetched Contribution");
+        require(fetched[msg.sender].handoutId != 0, "Already Fetched Contribution");
         
         handoutId = handouts[handouts.length - 1].handoutId;
         contributor = handouts[handouts.length - 1].owner;
