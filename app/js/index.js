@@ -1,11 +1,13 @@
 import Web3 from 'web3';
 
 if (typeof web3 !== 'undefined') {
-    var web3 = new Web3(web3.currentProvider);
+    web3 = new Web3(window.web3.currentProvider);
 } else {
 // set the provider you want from Web3.providers
-    var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    // var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 }
+
+console.log(web3);
 
 var startLatitude = 12.897835;
 var startLongitude = 77.576369;
@@ -212,6 +214,15 @@ function pushDataToIPFS(dataAggregate) {
 }
 
 window.onload = function() {
+    // (async function() {
+    //     for (var i=0; i<9; i++) {
+    //         let accounts = await web3.eth.getAccounts();
+    //         MyContract.methods.createRegion("0x"+ String(i)).send({
+    //             from: accounts[0],
+    //             gasPrice: 5
+    //         })
+    //     }
+    // })();
     var currentLatitude=0, currentLongitude=0;
     var currentRegion = -1;
     var canvas = document.getElementById('myCanvas');
@@ -265,10 +276,10 @@ window.onload = function() {
             // after aggregating for five minutes, push to ipfs
             if (count >= 20) {
                 let accounts = await web3.eth.getAccounts();
-                var hash = pushDataToIPFS(dataAggregate);
-                MyContract.addHandout(hash, {
+                var hash = pushDataToIPFS(dataAggregate);                
+                console.log(accounts);
+                MyContract.methods.addHandout(hash).send({
                     from: accounts[0],
-                    gas: await MyContract.methods.addHandout.estimateGas(hash, {from: web3.eth.accounts[0]}) + 1000, 
                     gasPrice: 5
                 });
                 dataAggregate = [];
