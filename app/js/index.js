@@ -86,12 +86,7 @@ var MyContract = new web3.eth.Contract([
 			}
 		],
 		"name": "getRegion",
-		"outputs": [
-			{
-				"name": "",
-				"type": "string"
-			}
-		],
+		"outputs": [],
 		"payable": true,
 		"stateMutability": "payable",
 		"type": "function"
@@ -145,10 +140,14 @@ var MyContract = new web3.eth.Contract([
 				"type": "address"
 			}
 		],
-		"name": "deposits",
+		"name": "contribStats",
 		"outputs": [
 			{
-				"name": "",
+				"name": "numberOfContribs",
+				"type": "uint256"
+			},
+			{
+				"name": "numberOfHandouts",
 				"type": "uint256"
 			}
 		],
@@ -160,19 +159,11 @@ var MyContract = new web3.eth.Contract([
 		"constant": true,
 		"inputs": [
 			{
-				"name": "a",
-				"type": "uint256"
-			},
-			{
-				"name": "b",
-				"type": "uint256"
-			},
-			{
-				"name": "c",
-				"type": "uint256"
+				"name": "",
+				"type": "address"
 			}
 		],
-		"name": "getDivision",
+		"name": "deposits",
 		"outputs": [
 			{
 				"name": "",
@@ -180,7 +171,7 @@ var MyContract = new web3.eth.Contract([
 			}
 		],
 		"payable": false,
-		"stateMutability": "pure",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -199,6 +190,48 @@ var MyContract = new web3.eth.Contract([
 			{
 				"name": "ipfsHash",
 				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getMyRegionHash",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getNumberOfContribs",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getNumberOfHandouts",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"payable": false,
@@ -256,6 +289,25 @@ var MyContract = new web3.eth.Contract([
 		"inputs": [
 			{
 				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "myHash",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
 				"type": "uint256"
 			}
 		],
@@ -279,7 +331,7 @@ var MyContract = new web3.eth.Contract([
 		"type": "function"
 	}
 ]);
-    MyContract.options.address = "0x359fc9b09cca62bb25386944bc5d6c06860d36b0";
+    MyContract.options.address = "0x6fb41ef2ed49073d9b0834cb20e3464eb565ad27";
 
 function getData(regionId) {
     // var regionId = getRegionId(latitude, longitude);
@@ -308,7 +360,7 @@ function getRegionId(latitude, longitude) {
     var lati = Math.abs(Math.floor((latitude - startLatitude)/latitudeDiff));
     var longi = Math.abs(Math.floor((longitude- startLongitude)/longitudeDiff));
     var regionId = lati*3 + longi;
-    return regionId;
+    return 0;
 }
 
 function pushDataToIPFS(dataAggregate) {
@@ -341,9 +393,14 @@ window.onload = function() {
     var currentRegion = -1;
     var canvas = document.getElementById('myCanvas');
     var ctx = canvas.getContext("2d");
-
+	// verifier();
     ctx.strokeStyle="#FF0000";
 	ctx.fillStyle = "blue";
+	// getMyHandout().then((data, err) => {
+	// 	console.log(data);
+	// });
+	// verifyHandout(0, "QmbXCYvDASrYqo9ZEs58L1u84MFdgL9dS9VgMns37SKDik");
+	// return;
 	verifier();
     // setInterval(function(){
     //     var regionId = getRegionId(currentLatitude, currentLongitude);
@@ -388,7 +445,7 @@ window.onload = function() {
         //     count += 5;
         //     console.log(count);
         //     // after aggregating for five minutes, push to ipfs
-        //     if (count >= 20) {
+        //     if (count >= 10) {
         //         let accounts = await web3.eth.getAccounts();
         //         pushDataToIPFS(dataAggregate);                
         //         dataAggregate = [];
@@ -407,7 +464,6 @@ function addHandout(ipfsHash) {
 		console.log("reached here");
 		MyContract.methods.addHandout(String(ipfsHash)).send({
 			from: accounts[0],
-			gasPrice: 5,
 		}, function(err,result) {
 			console.log(err,result);
 		});
@@ -423,12 +479,11 @@ async function getRegionCost(regionId) {
 }
 
 async function getRegion(regionId) {
+	console.log('its fucked here', regionId);
 	let accounts = await web3.eth.getAccounts();
-	await MyContract.methods.getRegion(regionId).send({
+	return MyContract.methods.getRegion(regionId).send({
 		from : accounts[0],
 		value : 10000
-	}, function(err,result) {
-		console.log(err, result);
 	});
 }
 
@@ -437,81 +492,104 @@ async function createRegion(numberOfRegions) {
 	for (var i=0; i<numberOfRegions; i++) {
 		MyContract.methods.createRegion("0x"+ String(i)).send({
 			from: accounts[0],
-			gasPrice: 5
 		})
 	}
 }
 
 async function getHandout() {
+	console.log("lol lol");
 	let accounts = await web3.eth.getAccounts();
-	MyContract.methods.getHandout().send({
+	console.log(accounts);
+	return MyContract.methods.getHandout().send({
 		from: accounts[0],
-		gasPrice: 5
 	}, function(err,result) {
-		console.log(err,result);
+		console.log(err,result, "lala");
 	});
 }
 
 async function getMyHandout() {
 	let accounts = await web3.eth.getAccounts();
 	let data;
-	await MyContract.methods.getMyHandout().call({
+	return MyContract.methods.getMyHandout().call({
 		from: accounts[0],
-		gasPrice: 5
-	}, function(err,result) {
-		if (result) {
-			data = result;
-		}
 	});
-	return data;
+}
+
+function readableToJson(file) {
+	return;
 }
 
 async function verifier() {
 	let accounts = await web3.eth.getAccounts();
-	getHandout();
-	let data = await getMyHandout();
-	let ipfsHash = data['ipfsHash'];	
-	console.log(typeof ipfsHash);
-	verifyHandout(1, ipfsHash);
-	console.log(data);
-	return;
-	const ipfs = IpfsApi('localhost', 5001);
-	
-	// read the hash from the handout
-	ipfs.files.get(ipfsHash, function (err, file) {
+	getHandout().then((res, err) => {
+		console.log("in handouts");
 		if (err) {
-			console.log(err);
+			console.log(err, "getmyhandout");
 			return;
 		}
-		console.log(file);
-		console.log(file.content);
-		newData = readableToJson(file);
-		var regionId = json['data'][0]['startRegion']
-		var regionIdHash = (async function() {
-			return await getRegion(parseInt(json['data'][0]['startRegion']));
-		});
-		
-		// once you have the new data, get the old data of the region
-		ipfs.files.get(regionIdHash, function(err, file) {
-			oldData = readableToJson(file);
-		
-			// add the new data to the old data. formal verification goes here
-			for (var i=0; i<newData['data'].length; i++) {			
-				oldData['data'].push(newData['data'][i]);
-			}
-			let hash;
+		getMyHandout().then((data, err) => {
+			console.log("in getmyhandouts");
+			console.log(data);
+			let ipfsHash = data['ipfsHash'];
+			const ipfs = IpfsApi('localhost', 5001);
+			ipfs.files.get(ipfsHash, function (err, file) {
+				console.log("trying to get ipfs");
+				if (err) {
+				console.log("trying to get ipfs");				
+					console.log(err);
+					return;
+				};
+				console.log(file);
+				file.on('data', function (chunk) {
+					console.log("not here");
+					var newData = JSON.parse(chunk.content._readableState.buffer);
+					var regionId = newData['data'][0]['startRegion']
+					console.log(ipfsHash);
+					getRegion(parseInt(newData['data'][0]['startRegion'])).then((res,err) => {
+						if (err) {
+							console.log(err, "in get region");
+							return;
+						}
+						console.log("crossed get region");
+						getMyRegion().then((res, err) => {
+							if (err) {
+								console.log(err, "getmyregion");
+								return;
+							}
+							console.log(res, err);
+							let regionIdHash = res;						
+							ipfs.files.get(regionIdHash, function(err, file) {
+								if (err) {
+									console.log(err);
+									return;
+								}
+								console.log("second ipfs!");
+								file.on('data', function (chunk) {
+									console.log("second ipfs ran!");
+									var oldData = JSON.parse(chunk.content._readableState.buffer);
+									for (var i=0; i<newData['data'].length; i++) {			
+										oldData['data'].push(newData['data'][i]);
+									}
+									let hash;
+									console.log("HERERHERHER");
+									console.log("third ipfs!!!");
+									ipfs.files.add(Buffer.from(JSON.stringify(oldData)), (err, result) => {
+										if(err) {
+										console.error(err)
+										return
+										}
+										console.log("HIT!");
+										hash = result[0].hash;
+										console.log(hash, result[0].hash);
+										verifyHandout(regionId, hash);										
+									});
 
-			// push the old data to the ipfs server and get the hash
-			ipfs.files.add(Buffer.from(JSON.stringify(oldData)), (err, result) => {
-				if(err) {
-				  console.error(err)
-				  return
-				}
-				hash = result[0].hash;
-				console.log(hash, result[0].hash);
+								});
+							});
+						});
+					});
+				});
 			});
-
-			verifyHandout(regionId, hash);
 		});
 	});
 }
@@ -521,8 +599,14 @@ async function verifyHandout(regionId, hash) {
 	let accounts = await web3.eth.getAccounts();
 	MyContract.methods.verifyHandout(regionId, hash).send({
 		from: accounts[0],
-		gasPrice: 5
 	}, function(err,result) {
 		console.log(err,result);
+	});
+}
+
+async function getMyRegion() {
+	let accounts = await web3.eth.getAccounts();
+	return MyContract.methods.getMyRegionHash().call({
+		from: accounts[0],
 	});
 }
