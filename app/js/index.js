@@ -208,9 +208,9 @@ function pushDataToIPFS(dataAggregate) {
           return
         }
         hash = result[0].hash;
-        console.log(hash, result[0].hash);
-    });
-    return hash;
+		console.log(hash, result[0].hash);
+		// addHandout(hash);
+	});
 }
 
 window.onload = function() {
@@ -276,15 +276,42 @@ window.onload = function() {
             // after aggregating for five minutes, push to ipfs
             if (count >= 20) {
                 let accounts = await web3.eth.getAccounts();
-                var hash = pushDataToIPFS(dataAggregate);                
-                console.log(accounts);
-                MyContract.methods.addHandout(hash).send({
-                    from: accounts[0],
-                    gasPrice: 5
-                });
+                pushDataToIPFS(dataAggregate);                
                 dataAggregate = [];
                 count = 0;
             }
-        }, 5000);
-    // CONTRIBUTOR CODE ENDS HERE
+		}, 5000);
+		/* let cost = getRegionCost(0);
+		cost.then((res,err) => {
+			console.log(res);
+		}); */
+		getRegion(0);
+}
+
+function addHandout(ipfsHash) {
+	web3.eth.getAccounts((err, accounts) => {
+		MyContract.methods.addHandout(String(ipfsHash)).send({
+			from: accounts[0]
+		}, function(err,result) {
+			console.log(err,result);
+		});
+	});
+}
+
+async function getRegionCost(regionId) {
+	let cost;
+	await MyContract.methods.getRegionCost(regionId).call(function(err,result) {
+		cost = result;
+	});
+	return cost;
+}
+
+async function getRegion(regionId) {
+	let accounts = await web3.eth.getAccounts();
+	await MyContract.methods.getRegion(regionId).send({
+		from : accounts[0],
+		value : 10000
+	}, function(err,result) {
+		console.log(err, result);
+	});
 }
