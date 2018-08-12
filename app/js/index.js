@@ -11,6 +11,7 @@ console.log(web3);
 
 var startLatitude = 12.897835;
 var startLongitude = 77.576369;
+var tracker;
 
 var latitudeDiff = -0.004531999999999907;
 var longitudeDiff = 0.01386200000000315;
@@ -421,42 +422,41 @@ window.onload = function() {
     //     ctx.clearRect(0, 0, canvas.width, canvas.height);
     //     drawMap(ctx, data, currentLatitude, currentLongitude, currentRegion);
     // }, 3000);
+}
 
-    // CONTRIBUTOR CODE STARTS HERE
-        var contribStartPosLatitude, contribStartPosLongitude;
-        navigator.geolocation.getCurrentPosition(function showPosition(position) {
-            contribStartPosLatitude = position.coords.latitude;
-            contribStartPosLongitude = position.coords.longitude;
-        });
-        var dataAggregate = []; 
-        var count = 0;
-        // setInterval(async function() {
-        //     var contribEndPosLatitude, contribEndPosLongitude;
-        //     navigator.geolocation.getCurrentPosition(function showPosition(position) {
-        //         contribEndPosLatitude = position.coords.latitude;
-        //         contribEndPosLongitude = position.coords.longitude;
-        //     });
-        //     // if he has changed his location
-        //     if (! (contribEndPosLatitude == contribStartPosLatitude && contribEndPosLongitude == contribStartPosLongitude)) {
-        //         // if he travels two regions, then he gets contribution to both regions
-        //         var startRegion = getRegionId(contribStartPosLatitude, contribStartPosLongitude);
-        //         dataAggregate.push([startRegion, contribStartPosLatitude, contribStartPosLongitude, contribEndPosLatitude, contribEndPosLongitude]);
-        //     }
-        //     count += 5;
-        //     console.log(count);
-        //     // after aggregating for five minutes, push to ipfs
-        //     if (count >= 10) {
-        //         let accounts = await web3.eth.getAccounts();
-        //         pushDataToIPFS(dataAggregate);                
-        //         dataAggregate = [];
-        //         count = 0;
-        //     }
-		// }, 5000);
-		/* let cost = getRegionCost(0);
-		cost.then((res,err) => {
-			console.log(res);
-		}); */
-		// getRegion(0);
+function startTracking() {
+	var contribStartPosLatitude, contribStartPosLongitude;
+	navigator.geolocation.getCurrentPosition(function showPosition(position) {
+		contribStartPosLatitude = position.coords.latitude;
+		contribStartPosLongitude = position.coords.longitude;
+	});
+	var dataAggregate = [];
+	var timeElapsed = 0;
+	tracker = window.setInterval(async function() {
+	    var contribEndPosLatitude, contribEndPosLongitude;
+	    navigator.geolocation.getCurrentPosition(function showPosition(position) {
+	        contribEndPosLatitude = position.coords.latitude;
+	        contribEndPosLongitude = position.coords.longitude;
+	    });
+	    // if he has changed his location
+	    if (! (contribEndPosLatitude == contribStartPosLatitude && contribEndPosLongitude == contribStartPosLongitude)) {
+	        // if he travels two regions, then he gets contribution to both regions
+	        var startRegion = getRegionId(contribStartPosLatitude, contribStartPosLongitude);
+	        dataAggregate.push([startRegion, contribStartPosLatitude, contribStartPosLongitude, contribEndPosLatitude, contribEndPosLongitude]);
+	    }
+	    timeElapsed += 5;
+	    console.log(timeElapsed);
+	    // after aggregating for five minutes, push to ipfs
+	    if (timeElapsed % 20 == 0) {
+	        pushDataToIPFS(dataAggregate);                
+	        dataAggregate = [];
+	        timeElapsed = 0;
+	    }
+	}, 1000);
+}
+
+function stopTracking() {
+	window.clearInterval(tracker);
 }
 
 function addHandout(ipfsHash) {
@@ -610,3 +610,30 @@ async function getMyRegion() {
 		from: accounts[0],
 	});
 }
+async function updateNumberOfHandouts() {
+	let accounts = await web3.eth.getAccounts();
+	await MyContract.methods.getNumberOfHandouts().call({
+		from: accounts[0]
+	}, function (err, result) {
+		if (result) {
+			document.getElementById("number_handouts").innerHTML = result;
+		}
+		else {
+			alert("Transaction Failed");
+		}
+	});
+}
+
+async function updateNumberOfContribs() {
+	let accounts = await web3.eth.getAccounts();
+	await MyContract.methods.getNumberOfConribs().call({
+		from: accounts[0]
+	}, function (err, result) {
+		if (result) {
+			document.getElementById("number_contribs").innerHTML = result;
+		} else {
+			alert("Transaction Failed");
+		}
+	});
+}
+

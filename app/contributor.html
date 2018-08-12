@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/login.css" >
     <script src="https://unpkg.com/ipfs-api@9.0.0/dist/index.js" integrity="sha384-5bXRcW9kyxxnSMbOoHzraqa7Z0PQWIao+cgeg327zit1hz5LZCEbIMx/LWKPReuB"
         crossorigin="anonymous"></script>
     <style>
@@ -75,20 +75,26 @@
                     <a href="#"><b>Number of Handouts</b></a>
                 </p>
                 <p>
-                    <a href="#">10</a>
+                    <a href="#"><p id="number_handouts">10</p></a>
+                </p>
+                <hr>
+                <p>
+                    <a href="#"><b>Number of Contributions</b></a>
+                </p>
+                <p>
+                    <a href="#"><p id="number_contribs">10</p></a>
                 </p>
             </div>
             <div class="col-sm-8 text-left">
                 <h1>Hello Contributor</h1>
                 <p>Points Aggregated: </p>
                 <hr>
-                <button>Submit Data</button>
+            <button id="control_tracking" onClick="handleTrackingClick()">Start Tracking</button>
             </div>
             <div class="col-sm-2 sidenav">
             </div>
         </div>
     </div>
-<script src="js/basics.js"></script>
-<script src="js/contributor.js"></script>
+    <script src="js/contributor.js"></script>
 </body>
 </html>

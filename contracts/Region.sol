@@ -20,11 +20,18 @@ contract Region {
         string ipfsHash;
     }
 
+    struct Stat {
+        uint numberOfContribs;
+        uint numberOfHandouts;
+    }
+    
     Reg[] public regions;
     Handout[] public handouts;
     
     mapping(address => Handout) private fetched;
     mapping(address => uint) public deposits;
+    mapping(address => Stat) public contribStats;
+    mapping(address => string) public myHash;
     
     uint initialAccessCost = 10000;
     uint globalHandoutId = 1;
@@ -33,12 +40,12 @@ contract Region {
         return regions[_regionId].accessCost;
     }
 
-    function getRegion(uint _regionId) public payable returns (string) {
+    function getRegion(uint _regionId) public payable {
         require(_regionId >= 0, "Invalid Region");
         require(_regionId < regions.length, "Invalid Region Id");
         require(regions.length > 0, "No Regions Avaialble");
-        require(regions[_regionId].contributors.length > 0, "No Contributions in this area");
-        require(regions[_regionId].contributors.length <= 100, "Exceeding Contributions Limit");
+        //require(regions[_regionId].contributors.length > 0, "No Contributions in this area");
+        //require(regions[_regionId].contributors.length <= 100, "Exceeding Contributions Limit");
         require(uint(msg.value) == regions[_regionId].accessCost, "Not right access cost");
         
         Reg memory region = regions[_regionId];
@@ -46,12 +53,20 @@ contract Region {
             uint amount = region.accessCost;
             region.contributors[i].userAddress.transfer(amount);
         }
-
-        return region.ipfsHash;
+        
+        myHash[msg.sender] = region.ipfsHash;
     }
     
-    function getDivision(uint a, uint b, uint c) public pure returns (uint) {
-        return a * b / c ;
+    function getMyRegionHash() public view returns(string) {
+        return myHash[msg.sender];
+    }
+    
+    function getNumberOfHandouts() public view returns (uint) {
+        return contribStats[msg.sender].numberOfHandouts;
+    }
+    
+    function getNumberOfContribs() public view returns (uint) {
+        return contribStats[msg.sender].numberOfContribs;
     }
     
     function payAmount() public payable {
@@ -94,6 +109,7 @@ contract Region {
         require(bytes(_ipfsHash).length != 0, "Invalid IPFS Hash");
         handouts.push(Handout(globalHandoutId, msg.sender, _ipfsHash));
         globalHandoutId++;
+        contribStats[msg.sender].numberOfHandouts++;
     }
 
     function getHandout() public returns (uint handoutId, address contributor, string ipfsHash) {
@@ -119,5 +135,6 @@ contract Region {
         require(fetched[msg.sender].handoutId != 0, "Fetched no contribution");
         _updateRegion(fetched[msg.sender].owner, _regionId, ipfsHash);
         fetched[msg.sender].handoutId = 0;
+        contribStats[fetched[msg.sender].owner].numberOfContribs++;
     }
 }
