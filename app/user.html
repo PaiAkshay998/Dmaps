@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/login.css">
     <script src="https://unpkg.com/ipfs-api@9.0.0/dist/index.js" integrity="sha384-5bXRcW9kyxxnSMbOoHzraqa7Z0PQWIao+cgeg327zit1hz5LZCEbIMx/LWKPReuB"
         crossorigin="anonymous"></script>
     <style>
@@ -68,10 +69,14 @@
             <div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="nav navbar-nav">
                     <li class="active">
-                        <a href="#">Address: <p style="display: inline" id="user_address"></p></a>
+                        <a href="#">Address:
+                            <p style="display: inline" id="user_address"></p>
+                        </a>
                     </li>
                     <li class="active">
-                        <a href="#">Balance: <p style="display: inline" id="user_balance"></p></a>
+                        <a href="#">Balance:
+                            <p style="display: inline" id="user_balance"></p>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -80,27 +85,13 @@
 
     <div class="container-fluid text-center">
         <div class="row content">
-            <div class="col-sm-2 sidenav">
-                <p>
-                    <a href="#"><b>Current Handout</b></a>
-                </p>
-                <p>
-                    <a id="handout_current"></a>
-                </p>
-            </div>
+            <div class="col-sm-2 sidenav"></div>
             <div class="col-sm-8 text-left">
-                <h1>Welcome</h1>
-                <p id="check_if_fetched_handout"></p>
-                <p>Owner: <p style="display: inline" id="handout_owner">Hello</p></p>
-                <p>IPFS Location: <p style="display: inline" id="handout_ipfs"></p></p>
-                <p>Region ID: <p style="display: inline" id="handout_region"></p></p>
-                <p id="handout_status"></p>
-                <hr>
-                <button>Download Next Handout</button>
-                <button onclick="handleVerifyClick()">Verify Handout</button>
+                <canvas id="myCanvas"></canvas>
             </div>
         </div>
     </div>
-    <script src="js/verifier.js"></script>
+    <script src="js/user.js"></script>
 </body>
+
 </html>

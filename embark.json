@@ -4,11 +4,15 @@
     "css/app.css": ["app/css/**"],
     "js/app.js": ["app/js/index.js"],
     "js/basics.js": ["app/js/basics.js"],
+    "js/user.js": ["app/js/user.js"],
+    "js/verifier.js": ["app/js/verifier.js"],
     "js/contributor.js": ["app/js/contributor.js"],
     "images/": ["app/images/**"],
     "index.html": "app/index.html",
     "contributor.html": "app/contributor.html",
-    "verifier.html": "app/verifier.html"
+    "verifier.html": "app/verifier.html",
+    "user.html": "app/user.html"
+
   },
   "buildDir": "dist/",
   "config": "config/",
