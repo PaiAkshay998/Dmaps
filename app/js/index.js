@@ -12,14 +12,8 @@ console.log(web3);
 var startLatitude = 12.897835;
 var startLongitude = 77.576369;
 
-var latitudeDiff = -0.004531999999999907;
-var longitudeDiff = 0.01386200000000315;
-
-var data = [
-    {"latitude1":10, "longitude1":20, "latitude2":30, "longitude2":40},
-    {"latitude1":30, "longitude1":40, "latitude2":50, "longitude2":55},
-    {"latitude1":50, "longitude1":55, "latitude2":60, "longitude2":65},
-];
+var latitudeDiff = // fill this up;
+var longitudeDiff = 0.00439899999999227;
 
 var MyContract = new web3.eth.Contract([
 	{
@@ -333,27 +327,60 @@ var MyContract = new web3.eth.Contract([
 ]);
     MyContract.options.address = "0x6fb41ef2ed49073d9b0834cb20e3464eb565ad27";
 
-function getData(regionId) {
-    // var regionId = getRegionId(latitude, longitude);
-    // var hash = Region.getRegion(regionId);
-    return data;
-}
+var data;
+
+// async function getData(regionId) {
+//     getRegion(regionId).then((res,err) => {
+// 		const ipfs = IpfsApi('localhost', 5001);
+// 		if (err) {
+// 			console.log(err, "in get region");
+// 			return;
+// 		}
+// 		console.log("1");
+// 		await getMyRegion().then((res, err) => {
+// 			if (err) {
+// 				console.log(err, "getmyregion");
+// 				return;
+// 			}
+// 			console.log(res, 2);
+// 			ipfs.files.get(res, function (err, file) {
+// 				console.log("trying to get ipfs");
+// 				if (err) {
+// 				console.log("trying to get ipfs");				
+// 					console.log(err);
+// 					return;
+// 				};
+// 				console.log(file);
+// 				file.on('data', function (chunk) {
+// 					data = JSON.parse(chunk.content._readableState.buffer);
+// 					data = data['data'];
+// 					console.log(data);
+// 				});
+// 			});
+			
+// 		});
+// 	});
+// }
 
 function drawMap(ctx, data, currentLatitude, currentLongitude, currentRegion) {
-
+	console.log("DATA", data);
     for (var i=0; i<data.length; i++) {
         ctx.moveTo(data[i]['latitude1'], data[i]['longitude1']);
         ctx.lineTo(data[i]['latitude2'], data[i]['longitude2']);
         ctx.stroke();
     }
     var latitude = currentRegion/3;
-    var longitude = currentRegion%3;
+	var longitude = currentRegion%3;
+	
+	console.log(latitude, longitude);
 
     var x = (startLatitude + latitude*latitudeDiff) - currentLatitude;
-    var y = currentLongitude - (startLongitude + longitude*longitudeDiff);
+	var y = currentLongitude - (startLongitude + longitude*longitudeDiff);
+	console.log(x, y);
     x = Math.floor(x*Math.abs(500/latitudeDiff));
-    y = Math.floor(y*Math.abs(500/longitudeDiff));
-    ctx.fillRect(x, y, 1, 1);
+	y = Math.floor(y*Math.abs(500/longitudeDiff));
+	console.log(x, y);
+    ctx.fillRect(x, y, 3, 3);
 }
 
 function getRegionId(latitude, longitude) {
@@ -388,39 +415,58 @@ function pushDataToIPFS(dataAggregate) {
 	});
 }
 
-window.onload = function() {
+window.onload = async function() {
     var currentLatitude=0, currentLongitude=0;
-    var currentRegion = -1;
+    var currentRegion = 0;
     var canvas = document.getElementById('myCanvas');
-    var ctx = canvas.getContext("2d");
-	// verifier();
+	var ctx = canvas.getContext("2d");
     ctx.strokeStyle="#FF0000";
 	ctx.fillStyle = "blue";
+	await enduser();
 	// getMyHandout().then((data, err) => {
 	// 	console.log(data);
 	// });
 	// verifyHandout(0, "QmbXCYvDASrYqo9ZEs58L1u84MFdgL9dS9VgMns37SKDik");
 	// return;
-	verifier();
-    // setInterval(function(){
-    //     var regionId = getRegionId(currentLatitude, currentLongitude);
+	// verifier();
+    async function enduser() {
+		var regionId = getRegionId(currentLatitude, currentLongitude);
+		console.log(regionId);
+		getRegion(regionId).then((res,err) => {
+			const ipfs = IpfsApi('localhost', 5001);
+			if (err) {
+				console.log(err, "in get region");
+				return;
+			}
+			console.log("1");
+			getMyRegion().then((res, err) => {
+				if (err) {
+					console.log(err, "getmyregion");
+					return;
+				}
+				console.log(res, 2);
+				ipfs.files.get(res, function (err, file) {
+					if (err) {
+					console.log("trying to get ipfs");				
+						console.log(err);
+						return;
+					};
+					console.log(file);
+					file.on('data', function (chunk) {
+						data = JSON.parse(chunk.content._readableState.buffer);
+						data = data['data'];
+						navigator.geolocation.getCurrentPosition(function showPosition(position) {
+							currentLatitude = position.coords.latitude;
+							currentLongitude = position.coords.longitude;
+							ctx.clearRect(0, 0, canvas.width, canvas.height);
+							drawMap(ctx, data, currentLatitude, currentLongitude, currentRegion);
+						});
 
-    //     if (regionId != currentRegion) {
-    //         navigator.geolocation.getCurrentPosition(function showPosition(position) {
-    //             currentLatitude = position.coords.latitude;
-    //             currentLongitude = position.coords.longitude;
-    //         });
-    //         currentRegion = regionId;
-    //         data = getData(currentRegion);
-    //     } else {
-    //         navigator.geolocation.getCurrentPosition(function showPosition(position) {
-    //             currentLatitude = position.coords.latitude;
-    //             currentLongitude = position.coords.longitude;
-    //         });
-    //     }
-    //     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    //     drawMap(ctx, data, currentLatitude, currentLongitude, currentRegion);
-    // }, 3000);
+					});
+				});	
+			});
+		});
+    }
 
     // CONTRIBUTOR CODE STARTS HERE
         var contribStartPosLatitude, contribStartPosLongitude;
