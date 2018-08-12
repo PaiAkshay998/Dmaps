@@ -6,234 +6,163 @@ if (typeof web3 !== 'undefined') {
 }
 
 var MyContract = new web3.eth.Contract([{
-        "constant": false,
-        "inputs": [{
-            "name": "_ipfsHash",
-            "type": "string"
-        }],
-        "name": "addHandout",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
+    "constant": true,
+    "inputs": [],
+    "name": "getNumberOfHandouts",
+    "outputs": [{
+        "name": "",
+        "type": "uint256"
+    }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+},
+{
+    "constant": true,
+    "inputs": [{
+        "name": "",
+        "type": "uint256"
+    }],
+    "name": "regions",
+    "outputs": [{
+        "name": "ipfsHash",
+        "type": "string"
     },
     {
-        "constant": false,
-        "inputs": [{
-            "name": "_ipfsHash",
-            "type": "string"
-        }],
-        "name": "createRegion",
-        "outputs": [{
-            "name": "",
-            "type": "uint256"
-        }],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "name": "accessCost",
+        "type": "uint256"
     },
     {
-        "constant": false,
-        "inputs": [],
-        "name": "getHandout",
-        "outputs": [{
-                "name": "handoutId",
-                "type": "uint256"
-            },
-            {
-                "name": "contributor",
-                "type": "address"
-            },
-            {
-                "name": "ipfsHash",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "name": "totalContributions",
+        "type": "uint256"
+    }
+],
+"payable": false,
+"stateMutability": "view",
+"type": "function"
+},
+{
+    "constant": true,
+    "inputs": [{
+        "name": "",
+        "type": "uint256"
+    }],
+    "name": "handouts",
+    "outputs": [{
+        "name": "handoutId",
+        "type": "uint256"
     },
     {
-        "constant": false,
-        "inputs": [{
-            "name": "_regionId",
-            "type": "uint256"
-        }],
-        "name": "getRegion",
-        "outputs": [],
-        "payable": true,
-        "stateMutability": "payable",
-        "type": "function"
+        "name": "owner",
+        "type": "address"
     },
     {
-        "constant": false,
-        "inputs": [],
-        "name": "payAmount",
-        "outputs": [],
-        "payable": true,
-        "stateMutability": "payable",
-        "type": "function"
+        "name": "ipfsHash",
+        "type": "string"
+    }
+],
+"payable": false,
+"stateMutability": "view",
+"type": "function"
+},
+{
+    "constant": false,
+    "inputs": [{
+        "name": "_ipfsHash",
+        "type": "string"
+    }],
+    "name": "addHandout",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+},
+{
+    "constant": false,
+    "inputs": [{
+        "name": "_regionId",
+        "type": "uint256"
+    }],
+    "name": "getRegion",
+    "outputs": [],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+},
+{
+    "constant": true,
+    "inputs": [],
+    "name": "getMyRegionHash",
+    "outputs": [{
+        "name": "",
+        "type": "string"
+    }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+},
+{
+    "constant": true,
+    "inputs": [],
+    "name": "checkDeposit",
+    "outputs": [{
+        "name": "",
+        "type": "uint256"
+    }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+},
+{
+    "constant": true,
+    "inputs": [],
+    "name": "getNumberOfContribs",
+    "outputs": [{
+        "name": "",
+        "type": "uint256"
+    }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+},
+{
+    "constant": false,
+    "inputs": [{
+        "name": "_regionId",
+        "type": "uint256"
     },
     {
-        "constant": false,
-        "inputs": [{
-                "name": "_regionId",
-                "type": "uint256"
-            },
-            {
-                "name": "ipfsHash",
-                "type": "string"
-            }
-        ],
-        "name": "verifyHandout",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "name": "ipfsHash",
+        "type": "string"
+    }
+],
+"name": "verifyHandout",
+"outputs": [],
+"payable": false,
+"stateMutability": "nonpayable",
+"type": "function"
+},
+{
+    "constant": false,
+    "inputs": [],
+    "name": "getHandout",
+    "outputs": [{
+        "name": "handoutId",
+        "type": "uint256"
     },
     {
-        "constant": true,
-        "inputs": [],
-        "name": "checkDeposit",
-        "outputs": [{
-            "name": "",
-            "type": "uint256"
-        }],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
+        "name": "contributor",
+        "type": "address"
     },
     {
-        "constant": true,
-        "inputs": [{
-            "name": "",
-            "type": "address"
-        }],
-        "name": "contribStats",
-        "outputs": [{
-                "name": "numberOfContribs",
-                "type": "uint256"
-            },
-            {
-                "name": "numberOfHandouts",
-                "type": "uint256"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [{
-            "name": "",
-            "type": "address"
-        }],
-        "name": "deposits",
-        "outputs": [{
-            "name": "",
-            "type": "uint256"
-        }],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "getMyHandout",
-        "outputs": [{
-                "name": "handoutId",
-                "type": "uint256"
-            },
-            {
-                "name": "contributor",
-                "type": "address"
-            },
-            {
-                "name": "ipfsHash",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "getMyRegionHash",
-        "outputs": [{
-            "name": "",
-            "type": "string"
-        }],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "getNumberOfContribs",
-        "outputs": [{
-            "name": "",
-            "type": "uint256"
-        }],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "getNumberOfHandouts",
-        "outputs": [{
-            "name": "",
-            "type": "uint256"
-        }],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [{
-            "name": "_regionId",
-            "type": "uint256"
-        }],
-        "name": "getRegionCost",
-        "outputs": [{
-            "name": "",
-            "type": "uint256"
-        }],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [{
-            "name": "",
-            "type": "uint256"
-        }],
-        "name": "handouts",
-        "outputs": [{
-                "name": "handoutId",
-                "type": "uint256"
-            },
-            {
-                "name": "owner",
-                "type": "address"
-            },
-            {
-                "name": "ipfsHash",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
+        "name": "ipfsHash",
+        "type": "string"
+    }
+],
+"payable": false,
+"stateMutability": "nonpayable",
+"type": "function"
+},
     {
         "constant": true,
         "inputs": [{
@@ -250,66 +179,140 @@ var MyContract = new web3.eth.Contract([{
         "type": "function"
     },
     {
+        "constant": false,
+        "inputs": [],
+        "name": "payAmount",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
         "constant": true,
         "inputs": [{
             "name": "",
-            "type": "uint256"
+            "type": "address"
         }],
-        "name": "regions",
+        "name": "contribStats",
         "outputs": [{
-                "name": "ipfsHash",
-                "type": "string"
-            },
-            {
-                "name": "accessCost",
-                "type": "uint256"
-            },
-            {
-                "name": "totalContributions",
-                "type": "uint256"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
+            "name": "numberOfContribs",
+            "type": "uint256"
+        },
+        {
+            "name": "numberOfHandouts",
+            "type": "uint256"
+        }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+},
+{
+    "constant": false,
+    "inputs": [{
+        "name": "_ipfsHash",
+        "type": "string"
+    }],
+    "name": "createRegion",
+    "outputs": [{
+        "name": "",
+        "type": "uint256"
+    }],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+},
+{
+    "constant": true,
+    "inputs": [{
+        "name": "_regionId",
+        "type": "uint256"
+    }],
+    "name": "getRegionCost",
+    "outputs": [{
+        "name": "",
+        "type": "uint256"
+    }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+},
+{
+    "constant": true,
+    "inputs": [],
+    "name": "getMyHandout",
+    "outputs": [{
+        "name": "handoutId",
+        "type": "uint256"
+    },
+    {
+        "name": "contributor",
+        "type": "address"
+    },
+    {
+        "name": "ipfsHash",
+        "type": "string"
     }
+],
+"payable": false,
+"stateMutability": "view",
+"type": "function"
+},
+{
+    "constant": true,
+    "inputs": [{
+        "name": "",
+        "type": "address"
+    }],
+    "name": "deposits",
+    "outputs": [{
+        "name": "",
+        "type": "uint256"
+    }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+}
 ]);
-MyContract.options.address = "0x6fb41ef2ed49073d9b0834cb20e3464eb565ad27";
+MyContract.options.address = "0x25f5e3dfe238054b4235aed7c24967137128438f";
 
 var startLatitude = 12.897835;
 var startLongitude = 77.576369;
 var latitudeDiff = -0.004531999999999907;
 var longitudeDiff = 0.01386200000000315;
+var contribEndPosLatitude, contribEndPosLongitude;
 
 let isTracking = false;
 var tracker;
 
 function startTracking() {
     console.log("In Here");
-    var contribStartPosLatitude, contribStartPosLongitude;
+    var contribStartPosLatitude, contribStartPosLongitude, startRegion = 0;
+    var startLat, endLat, startLon, endLon;
     navigator.geolocation.getCurrentPosition(function showPosition(position) {
-        contribStartPosLatitude = position.coords.latitude;
-        contribStartPosLongitude = position.coords.longitude;
+        endLat = position.coords.latitude;
+        endLon = position.coords.longitude;
     });
     var dataAggregate = [];
     var timeElapsed = 0;
     tracker = window.setInterval(async function () {
-        var contribEndPosLatitude, contribEndPosLongitude;
         navigator.geolocation.getCurrentPosition(function showPosition(position) {
-            contribEndPosLatitude = position.coords.latitude;
-            contribEndPosLongitude = position.coords.longitude;
+            startLat = endLat;
+            startLon = endLon;
+            endLat = position.coords.latitude;
+            endLon = position.coords.longitude;
         });
-        // if he has changed his location
-        if (!(contribEndPosLatitude == contribStartPosLatitude && contribEndPosLongitude == contribStartPosLongitude)) {
-            // if he travels two regions, then he gets contribution to both regions
-            var startRegion = getRegionId(contribStartPosLatitude, contribStartPosLongitude);
-            dataAggregate.push([startRegion, contribStartPosLatitude, contribStartPosLongitude, contribEndPosLatitude, contribEndPosLongitude]);
-        }
+        dataAggregate.push([startRegion, startLat, startLon, endLat, endLon]);
         document.getElementById("points_aggregate").innerHTML = dataAggregate.length;
+        console.log(String(dataAggregate));
         timeElapsed++;
         console.log(dataAggregate.length);
         // after aggregating for five minutes, push to ipfs
-        if (timeElapsed == 20) {
+        if (timeElapsed == 7) {
+            dataAggregate.shift();
+            dataAggregate.shift();
+            dataAggregate.shift();
+            console.log(dataAggregate);
             pushDataToIPFS(dataAggregate);
             dataAggregate = [];
             timeElapsed = 0;
@@ -337,6 +340,7 @@ function pushDataToIPFS(dataAggregate) {
         };
         json['data'].push(data);
     }
+    console.log(json);
     let hash = '';
     ipfs.files.add(Buffer.from(JSON.stringify(json)), (err, result) => {
         if (err) {

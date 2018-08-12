@@ -1,15 +1,20 @@
 import Web3 from 'web3';
+let processing = false;
 
 if (typeof web3 !== 'undefined') {
     console.log("Using Metamask");
     web3 = new Web3(window.web3.currentProvider);
 }
 
-var startLatitude = 12.892855;
-var startLongitude = 77.584114;
-var latitudeDiff = -0.00451800000000091;
-var longitudeDiff = 0.00439899999999227;
-var currentLatitude, currentLongitude, canvas, ctx, currentRegion = 0;
+function loadBalance() {
+    web3.eth.getAccounts().then((accounts, err) => {
+        web3.eth.getBalance(accounts[0]).then((result, err) => {
+            let ether = web3.utils.fromWei(result, 'ether');
+            document.getElementById("user_balance").innerHTML = ether;
+            document.getElementById("user_address").innerHTML = accounts[0];
+        });
+    });
+}
 
 var MyContract = new web3.eth.Contract([{
         "constant": true,
@@ -282,107 +287,115 @@ var MyContract = new web3.eth.Contract([{
 ]);
 MyContract.options.address = "0x25f5e3dfe238054b4235aed7c24967137128438f";
 
-var startLatitude = 12.892855;
-var startLongitude = 77.584114;
-var latitudeDiff = -0.00451800000000091;
-var longitudeDiff = 0.00439899999999227;
-
-function loadBalance() {
-    web3.eth.getAccounts().then((accounts, err) => {
-        web3.eth.getBalance(accounts[0]).then((result, err) => {
-            let ether = web3.utils.fromWei(result, 'ether');
-            document.getElementById("user_balance").innerHTML = ether;
-            document.getElementById("user_address").innerHTML = accounts[0];
-        });
-    });
-}
-
-function drawMap(data, currentLatitude, currentLongitude) {
-    console.log("DATA", data);
-    console.log(currentLatitude, currentLongitude);
-    for (var i = 0; i < data.length; i++) {
-        let lat1 = data[i]['contribStartPosLatitude'];
-        let lat2 = data[i]['contribEndPosLatitude'];
-        let lon1 = data[i]['contribStartPosLongitude'];
-        let lon2 = data[i]['contribEndPosLongitude'];
-        if(lon2 == undefined || lon1 == undefined || lat2 == undefined || lat1 ==undefined ) continue;
-        console.log(data[i]);
-        let x1, y1, x2, y2;
-        x1 = (lat1 - currentLatitude) * 1000 / latitudeDiff + 250;
-        x2 = (lat2 - currentLatitude) * 1000 / latitudeDiff + 250;
-        y1 = (currentLongitude - lon1) * 1000 / longitudeDiff + 400;
-        y2 = (currentLongitude - lon2) * 1000 / longitudeDiff + 400;
-        console.log(x1,y1,x2,y2);
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-    }
-    var latitude = currentRegion / 3;
-    var longitude = currentRegion % 3;
-
-    console.log(latitude, longitude);
-
-    var x = (startLatitude + latitude * latitudeDiff) - currentLatitude;
-    var y = currentLongitude - (startLongitude + longitude * longitudeDiff);
-    console.log(x, y);
-    x = Math.floor(x * Math.abs(500 / latitudeDiff));
-    y = Math.floor(y * Math.abs(500 / longitudeDiff));
-    console.log(x, y);
-    ctx.fillRect(x, y, 3, 3);
-}
-
-async function enduser() {
-    var regionId = getRegionId(startLatitude, startLongitude);
-    console.log(regionId);
-    getRegion(regionId).then((res, err) => {
-        const ipfs = IpfsApi('localhost', 5001);
+async function verifier() {
+    processing = true;
+    let accounts = await web3.eth.getAccounts();
+    document.getElementById("handout_status").innerHTML = "Registering to a handout";
+    getHandout().then((res, err) => {
+        console.log("in handouts");
         if (err) {
-            console.log(err, "in get region");
-            return;
+            document.getElementById("handout_status").innerHTML = "Already registered to a handout";
         }
-        console.log("1");
-        getMyRegion().then((res, err) => {
-            if (err) {
-                console.log(err, "getmyregion");
-                return;
-            }
-            console.log(res, 2);
-            ipfs.files.get(res, function (err, file) {
+        document.getElementById("handout_status").innerHTML = "Fetching Handout Address...";
+        getMyHandout().then((data, err) => {
+            console.log(data);
+            document.getElementById("handout_current").innerHTML = data['handoutId'];
+            document.getElementById("handout_owner").innerHTML = data['contributor'];
+            document.getElementById("handout_ipfs").innerHTML = data['ipfsHash'];
+            let ipfsHash = data['ipfsHash'];
+            const ipfs = IpfsApi('localhost', 5001);
+            document.getElementById("handout_status").innerHTML = "Fetching the Handout from IPFS...";            
+            ipfs.files.get(ipfsHash, function (err, file) {
                 if (err) {
                     console.log("trying to get ipfs");
                     console.log(err);
                     return;
                 };
                 console.log(file);
+                document.getElementById("handout_status").innerHTML = "Processing Handout...";
                 file.on('data', function (chunk) {
-                    var data = JSON.parse(chunk.content._readableState.buffer);
-                    data = data['data'];
-                    navigator.geolocation.getCurrentPosition(function showPosition(position) {
-                        currentLatitude = position.coords.latitude;
-                        currentLongitude = position.coords.longitude;
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        drawMap(data, currentLatitude, currentLongitude);
+                    var newData = JSON.parse(chunk.content._readableState.buffer);
+                    var regionId = newData['data'][0]['startRegion']
+                    console.log(ipfsHash);
+                    document.getElementById("handout_region").innerHTML = regionId;
+                    document.getElementById("handout_status").innerHTML = "Fetching Region File...";
+                    getRegion(parseInt(newData['data'][0]['startRegion'])).then((res, err) => {
+                        if (err) {
+                            console.log(err, "in get region");
+                            return;
+                        }
+                        console.log("crossed get region");
+                        getMyRegion().then((res, err) => {
+                            if (err) {
+                                console.log(err, "getmyregion");
+                                return;
+                            }
+                            console.log(res, err);
+                            let regionIdHash = res;
+                            ipfs.files.get(regionIdHash, function (err, file) {
+                                if (err) {
+                                    console.log(err);
+                                    return;
+                                }
+                                console.log("second ipfs!");
+                                document.getElementById("handout_status").innerHTML = "Writing Updated File to IPFS...";
+                                file.on('data', function (chunk) {
+                                    var oldData = JSON.parse(chunk.content._readableState.buffer);
+                                    for (var i = 0; i < newData['data'].length; i++) {
+                                        oldData['data'].push(newData['data'][i]);
+                                    }
+                                    let hash;
+                                    console.log("HERERHERHER");
+                                    console.log("third ipfs!!!");
+                                    ipfs.files.add(Buffer.from(JSON.stringify(oldData)), (err, result) => {
+                                        if (err) {
+                                            console.error(err)
+                                            return
+                                        }
+                                        console.log("HIT!");
+                                        hash = result[0].hash;
+                                        console.log(hash, result[0].hash);
+                                        document.getElementById("handout_status").innerHTML = "Verifying Handout";
+                                        verifyHandout(regionId, hash);
+                                    });
+                                });
+                            });
+                        });
                     });
-
                 });
             });
         });
     });
 }
 
-function getRegionId(latitude, longitude) {
-    var lati = Math.abs(Math.floor((latitude - startLatitude) / latitudeDiff));
-    var longi = Math.abs(Math.floor((longitude - startLongitude) / longitudeDiff));
-    var regionId = lati * 3 + longi;
-    return 0;
+async function getHandout() {
+    console.log("lol lol");
+    let accounts = await web3.eth.getAccounts();
+    console.log(accounts);
+    return MyContract.methods.getHandout().send({
+        from: accounts[0],
+    }, function (err, result) {
+        console.log(err, result, "lala");
+    });
 }
 
-async function getRegion(regionId) {
-    console.log('its fucked here', regionId);
+async function getMyHandout() {
     let accounts = await web3.eth.getAccounts();
-    return MyContract.methods.getRegion(regionId).send({
+    let data;
+    return MyContract.methods.getMyHandout().call({
         from: accounts[0],
-        value: 10000
+    });
+}
+
+async function verifyHandout(regionId, hash) {
+    console.log(regionId, hash);
+    let accounts = await web3.eth.getAccounts();
+    MyContract.methods.verifyHandout(regionId, hash).send({
+        from: accounts[0],
+    }, function (err, result) {
+        console.log(err, result);
+        document.getElementById("handout_status").innerHTML = "Done";
+        processing = false;
     });
 }
 
@@ -392,15 +405,35 @@ async function getMyRegion() {
         from: accounts[0],
     });
 }
-
-window.onload = async function () {
-    loadBalance();
-    var currentLatitude = 0, currentLongitude = 0;
-    var currentRegion = 0;
-    canvas = document.getElementById('myCanvas');
-    ctx = canvas.getContext("2d");
-    console.log(canvas, ctx);
-    ctx.strokeStyle = "#FF0000";
-    ctx.fillStyle = "blue";
-    await enduser();
+async function updateNumberOfHandouts() {
+    let accounts = await web3.eth.getAccounts();
+    await MyContract.methods.getNumberOfHandouts().call({
+        from: accounts[0]
+    }, function (err, result) {
+        if (result) {
+            document.getElementById("number_handouts").innerHTML = result;
+        } else {
+            alert("Transaction Failed");
+        }
+    });
 }
+
+async function getRegion(regionId) {
+    let accounts = await web3.eth.getAccounts();
+    return MyContract.methods.getRegion(regionId).send({
+        from: accounts[0],
+        value: 10000
+    });
+}
+
+window.onload = function() {
+    loadBalance();
+}
+
+function handleVerifyClick() {
+    if(!processing) {
+        verifier();
+    }
+}
+
+window.handleVerifyClick = handleVerifyClick;
