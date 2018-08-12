@@ -98,6 +98,15 @@ var MyContract = new web3.eth.Contract([
 	},
 	{
 		"constant": false,
+		"inputs": [],
+		"name": "payAmount",
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": false,
 		"inputs": [
 			{
 				"name": "_regionId",
@@ -112,6 +121,66 @@ var MyContract = new web3.eth.Contract([
 		"outputs": [],
 		"payable": false,
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "checkDeposit",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "deposits",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "a",
+				"type": "uint256"
+			},
+			{
+				"name": "b",
+				"type": "uint256"
+			},
+			{
+				"name": "c",
+				"type": "uint256"
+			}
+		],
+		"name": "getDivision",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "pure",
 		"type": "function"
 	},
 	{
@@ -154,9 +223,63 @@ var MyContract = new web3.eth.Contract([
 		"payable": false,
 		"stateMutability": "view",
 		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "handouts",
+		"outputs": [
+			{
+				"name": "handoutId",
+				"type": "uint256"
+			},
+			{
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"name": "ipfsHash",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "regions",
+		"outputs": [
+			{
+				"name": "ipfsHash",
+				"type": "string"
+			},
+			{
+				"name": "accessCost",
+				"type": "uint256"
+			},
+			{
+				"name": "totalContributions",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
 	}
 ]);
-    MyContract.options.address = "0xca8455adb750c829078b7759617c624a68bb8bb9";
+    MyContract.options.address = "0x359fc9b09cca62bb25386944bc5d6c06860d36b0";
 
 function getData(regionId) {
     // var regionId = getRegionId(latitude, longitude);
@@ -209,47 +332,38 @@ function pushDataToIPFS(dataAggregate) {
         }
         hash = result[0].hash;
 		console.log(hash, result[0].hash);
-		// addHandout(hash);
+		addHandout(hash);
 	});
 }
 
 window.onload = function() {
-    // (async function() {
-    //     for (var i=0; i<9; i++) {
-    //         let accounts = await web3.eth.getAccounts();
-    //         MyContract.methods.createRegion("0x"+ String(i)).send({
-    //             from: accounts[0],
-    //             gasPrice: 5
-    //         })
-    //     }
-    // })();
     var currentLatitude=0, currentLongitude=0;
     var currentRegion = -1;
     var canvas = document.getElementById('myCanvas');
     var ctx = canvas.getContext("2d");
 
     ctx.strokeStyle="#FF0000";
-    ctx.fillStyle = "blue";
+	ctx.fillStyle = "blue";
+	verifier();
+    // setInterval(function(){
+    //     var regionId = getRegionId(currentLatitude, currentLongitude);
 
-    setInterval(function(){
-        var regionId = getRegionId(currentLatitude, currentLongitude);
-
-        if (regionId != currentRegion) {
-            navigator.geolocation.getCurrentPosition(function showPosition(position) {
-                currentLatitude = position.coords.latitude;
-                currentLongitude = position.coords.longitude;
-            });
-            currentRegion = regionId;
-            data = getData(currentRegion);
-        } else {
-            navigator.geolocation.getCurrentPosition(function showPosition(position) {
-                currentLatitude = position.coords.latitude;
-                currentLongitude = position.coords.longitude;
-            });
-        }
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawMap(ctx, data, currentLatitude, currentLongitude, currentRegion);
-    }, 3000);
+    //     if (regionId != currentRegion) {
+    //         navigator.geolocation.getCurrentPosition(function showPosition(position) {
+    //             currentLatitude = position.coords.latitude;
+    //             currentLongitude = position.coords.longitude;
+    //         });
+    //         currentRegion = regionId;
+    //         data = getData(currentRegion);
+    //     } else {
+    //         navigator.geolocation.getCurrentPosition(function showPosition(position) {
+    //             currentLatitude = position.coords.latitude;
+    //             currentLongitude = position.coords.longitude;
+    //         });
+    //     }
+    //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //     drawMap(ctx, data, currentLatitude, currentLongitude, currentRegion);
+    // }, 3000);
 
     // CONTRIBUTOR CODE STARTS HERE
         var contribStartPosLatitude, contribStartPosLongitude;
@@ -259,39 +373,41 @@ window.onload = function() {
         });
         var dataAggregate = []; 
         var count = 0;
-        setInterval(async function() {
-            var contribEndPosLatitude, contribEndPosLongitude;
-            navigator.geolocation.getCurrentPosition(function showPosition(position) {
-                contribEndPosLatitude = position.coords.latitude;
-                contribEndPosLongitude = position.coords.longitude;
-            });
-            // if he has changed his location
-            if (! (contribEndPosLatitude == contribStartPosLatitude && contribEndPosLongitude == contribStartPosLongitude)) {
-                // if he travels two regions, then he gets contribution to both regions
-                var startRegion = getRegionId(contribStartPosLatitude, contribStartPosLongitude);
-                dataAggregate.push([startRegion, contribStartPosLatitude, contribStartPosLongitude, contribEndPosLatitude, contribEndPosLongitude]);
-            }
-            count += 5;
-            console.log(count);
-            // after aggregating for five minutes, push to ipfs
-            if (count >= 20) {
-                let accounts = await web3.eth.getAccounts();
-                pushDataToIPFS(dataAggregate);                
-                dataAggregate = [];
-                count = 0;
-            }
-		}, 5000);
+        // setInterval(async function() {
+        //     var contribEndPosLatitude, contribEndPosLongitude;
+        //     navigator.geolocation.getCurrentPosition(function showPosition(position) {
+        //         contribEndPosLatitude = position.coords.latitude;
+        //         contribEndPosLongitude = position.coords.longitude;
+        //     });
+        //     // if he has changed his location
+        //     if (! (contribEndPosLatitude == contribStartPosLatitude && contribEndPosLongitude == contribStartPosLongitude)) {
+        //         // if he travels two regions, then he gets contribution to both regions
+        //         var startRegion = getRegionId(contribStartPosLatitude, contribStartPosLongitude);
+        //         dataAggregate.push([startRegion, contribStartPosLatitude, contribStartPosLongitude, contribEndPosLatitude, contribEndPosLongitude]);
+        //     }
+        //     count += 5;
+        //     console.log(count);
+        //     // after aggregating for five minutes, push to ipfs
+        //     if (count >= 20) {
+        //         let accounts = await web3.eth.getAccounts();
+        //         pushDataToIPFS(dataAggregate);                
+        //         dataAggregate = [];
+        //         count = 0;
+        //     }
+		// }, 5000);
 		/* let cost = getRegionCost(0);
 		cost.then((res,err) => {
 			console.log(res);
 		}); */
-		getRegion(0);
+		// getRegion(0);
 }
 
 function addHandout(ipfsHash) {
 	web3.eth.getAccounts((err, accounts) => {
+		console.log("reached here");
 		MyContract.methods.addHandout(String(ipfsHash)).send({
-			from: accounts[0]
+			from: accounts[0],
+			gasPrice: 5,
 		}, function(err,result) {
 			console.log(err,result);
 		});
@@ -313,5 +429,100 @@ async function getRegion(regionId) {
 		value : 10000
 	}, function(err,result) {
 		console.log(err, result);
+	});
+}
+
+async function createRegion(numberOfRegions) {
+	let accounts = await web3.eth.getAccounts();
+	for (var i=0; i<numberOfRegions; i++) {
+		MyContract.methods.createRegion("0x"+ String(i)).send({
+			from: accounts[0],
+			gasPrice: 5
+		})
+	}
+}
+
+async function getHandout() {
+	let accounts = await web3.eth.getAccounts();
+	MyContract.methods.getHandout().send({
+		from: accounts[0],
+		gasPrice: 5
+	}, function(err,result) {
+		console.log(err,result);
+	});
+}
+
+async function getMyHandout() {
+	let accounts = await web3.eth.getAccounts();
+	let data;
+	await MyContract.methods.getMyHandout().call({
+		from: accounts[0],
+		gasPrice: 5
+	}, function(err,result) {
+		if (result) {
+			data = result;
+		}
+	});
+	return data;
+}
+
+async function verifier() {
+	let accounts = await web3.eth.getAccounts();
+	getHandout();
+	let data = await getMyHandout();
+	let ipfsHash = data['ipfsHash'];	
+	console.log(typeof ipfsHash);
+	verifyHandout(1, ipfsHash);
+	console.log(data);
+	return;
+	const ipfs = IpfsApi('localhost', 5001);
+	
+	// read the hash from the handout
+	ipfs.files.get(ipfsHash, function (err, file) {
+		if (err) {
+			console.log(err);
+			return;
+		}
+		console.log(file);
+		console.log(file.content);
+		newData = readableToJson(file);
+		var regionId = json['data'][0]['startRegion']
+		var regionIdHash = (async function() {
+			return await getRegion(parseInt(json['data'][0]['startRegion']));
+		});
+		
+		// once you have the new data, get the old data of the region
+		ipfs.files.get(regionIdHash, function(err, file) {
+			oldData = readableToJson(file);
+		
+			// add the new data to the old data. formal verification goes here
+			for (var i=0; i<newData['data'].length; i++) {			
+				oldData['data'].push(newData['data'][i]);
+			}
+			let hash;
+
+			// push the old data to the ipfs server and get the hash
+			ipfs.files.add(Buffer.from(JSON.stringify(oldData)), (err, result) => {
+				if(err) {
+				  console.error(err)
+				  return
+				}
+				hash = result[0].hash;
+				console.log(hash, result[0].hash);
+			});
+
+			verifyHandout(regionId, hash);
+		});
+	});
+}
+
+async function verifyHandout(regionId, hash) {
+	console.log(regionId, hash);
+	let accounts = await web3.eth.getAccounts();
+	MyContract.methods.verifyHandout(regionId, hash).send({
+		from: accounts[0],
+		gasPrice: 5
+	}, function(err,result) {
+		console.log(err,result);
 	});
 }

@@ -24,38 +24,56 @@ contract Region {
     Handout[] public handouts;
     
     mapping(address => Handout) private fetched;
-
+    mapping(address => uint) public deposits;
+    
     uint initialAccessCost = 10000;
-    uint globalHandoutId = 0;
+    uint globalHandoutId = 1;
 
     function getRegionCost(uint _regionId) public view returns (uint) {
         return regions[_regionId].accessCost;
     }
 
     function getRegion(uint _regionId) public payable returns (string) {
-        require(_regionId >= regions.length, "Invalid Region Id");
-        require(uint(msg.value) != regions[_regionId].accessCost, "Not right access cost");
+        require(_regionId >= 0, "Invalid Region");
+        require(_regionId < regions.length, "Invalid Region Id");
+        require(regions.length > 0, "No Regions Avaialble");
+        require(regions[_regionId].contributors.length > 0, "No Contributions in this area");
+        require(regions[_regionId].contributors.length <= 100, "Exceeding Contributions Limit");
+        require(uint(msg.value) == regions[_regionId].accessCost, "Not right access cost");
         
         Reg memory region = regions[_regionId];
         for(uint i = 0; i < region.contributors.length; i++) {
-            uint amount = (region.accessCost*region.contributors[i].numberOfContribs)/region.totalContributions;
+            uint amount = region.accessCost;
             region.contributors[i].userAddress.transfer(amount);
         }
 
         return region.ipfsHash;
     }
-
+    
+    function getDivision(uint a, uint b, uint c) public pure returns (uint) {
+        return a * b / c ;
+    }
+    
+    function payAmount() public payable {
+        deposits[msg.sender] += msg.value;
+    }
+    
+    function checkDeposit() public view returns(uint) {
+        return deposits[msg.sender];
+    }
+    
     function createRegion(string _ipfsHash) public returns (uint) {
         regions.length++;
-        regions[regions.length - 1].ipfsHash = _ipfsHash;
-        regions[regions.length - 1].accessCost = initialAccessCost;
-        regions[regions.length - 1].totalContributions = 0;
+        regions[regions.length-1].ipfsHash = _ipfsHash;
+        regions[regions.length-1].accessCost = initialAccessCost;
+        regions[regions.length-1].totalContributions = 0;
         return regions.length;
     }
 
     function _updateRegion(address _contributor, uint _regionId, string _ipfsHash) private {
         require(_regionId < regions.length, "Invalid Region");
-
+        require(bytes(_ipfsHash).length > 0, "Invalid IPFS Hash");
+        
         bool flag = false;
         regions[_regionId].totalContributions++;
         regions[_regionId].ipfsHash = _ipfsHash;
@@ -74,11 +92,13 @@ contract Region {
 
     function addHandout(string _ipfsHash) public {
         require(bytes(_ipfsHash).length != 0, "Invalid IPFS Hash");
-        handouts.push(Handout(handouts.length + 1, msg.sender, _ipfsHash));
+        handouts.push(Handout(globalHandoutId, msg.sender, _ipfsHash));
+        globalHandoutId++;
     }
 
     function getHandout() public returns (uint handoutId, address contributor, string ipfsHash) {
-        require(fetched[msg.sender].handoutId != 0, "Already Fetched Contribution");
+        require(fetched[msg.sender].handoutId == 0, "Already Fetched Contribution");
+        require(handouts.length > 0, "No availavle handouts");
         
         handoutId = handouts[handouts.length - 1].handoutId;
         contributor = handouts[handouts.length - 1].owner;
@@ -88,8 +108,16 @@ contract Region {
         handouts.length--;
     }
 
-    function verifyHandout(uint _regionId, string ipfsHash) private {
+    function getMyHandout() public view returns (uint handoutId, address contributor, string ipfsHash) {
+        require(fetched[msg.sender].handoutId != 0, "Did not fetch any conversation");
+        handoutId = fetched[msg.sender].handoutId;
+        contributor = fetched[msg.sender].owner;
+        ipfsHash = fetched[msg.sender].ipfsHash;
+    }
+
+    function verifyHandout(uint _regionId, string ipfsHash) public {
         require(fetched[msg.sender].handoutId != 0, "Fetched no contribution");
         _updateRegion(fetched[msg.sender].owner, _regionId, ipfsHash);
+        fetched[msg.sender].handoutId = 0;
     }
 }
