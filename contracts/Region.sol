@@ -50,7 +50,7 @@ contract Region {
         
         Reg memory region = regions[_regionId];
         for(uint i = 0; i < region.contributors.length; i++) {
-            uint amount = region.accessCost;
+            uint amount = region.accessCost * region.contributors[i].numberOfContribs / region.accessCost;
             region.contributors[i].userAddress.transfer(amount);
         }
         
