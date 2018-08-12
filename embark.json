@@ -3,8 +3,11 @@
   "app": {
     "css/app.css": ["app/css/**"],
     "js/app.js": ["app/js/index.js"],
+    "js/basics.js": ["app/js/basics.js"],
     "images/": ["app/images/**"],
-    "index.html": "app/index.html"
+    "index.html": "app/index.html",
+    "contributor.html": "app/contributor.html",
+    "verifier.html": "app/verifier.html"
   },
   "buildDir": "dist/",
   "config": "config/",
