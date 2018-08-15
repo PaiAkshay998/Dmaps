@@ -1,3 +1,17 @@
+const ethers = require('ethers');
+const Wallet = ethers.Wallet;
+const Contract = ethers.Contract;
+const utils = ethers.utils;
+const providers = ethers.providers;
+
+var wallet = {
+    address: "0x52E338656b5409ECf2a45D4d349Fa7226fCF20ec",
+    privateKey: "0x66fba1cf820478e61494570a71c24547c9ff943932c9fd08776b2b5982ec5439",
+    network: "",
+    etherscanProvider: "",
+    provide: ""
+};
+
 var startLatitude = 12.897835;
 var startLongitude = 77.576369;
 var latitudeDiff = -0.004531999999999907;
@@ -209,5 +223,15 @@ async function renderUserLocationRegion() {
     console.log(regionId);
 }
 
+/**
+ * initializeWallet - Initializes Global Wallet with provider and network
+ */
+function intializeWallet() {
+    wallet.network = providers.networks.kovan;
+    wallet.etherscanProvider = new providers.EtherscanProvider(wallet.network);
+    wallet.provider = providers.getDefaultProvider(wallet.network);
+}
+
 window.onload = function() {
+    intializeWallet();
 }
