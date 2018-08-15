@@ -1,281 +1,3 @@
-import Web3 from 'web3';
-
-if (typeof web3 !== 'undefined') {
-    console.log("Using Metamask");
-    web3 = new Web3(window.web3.currentProvider);
-}
-
-var MyContract = new web3.eth.Contract([{
-    "constant": true,
-    "inputs": [],
-    "name": "getNumberOfHandouts",
-    "outputs": [{
-        "name": "",
-        "type": "uint256"
-    }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "constant": true,
-    "inputs": [{
-        "name": "",
-        "type": "uint256"
-    }],
-    "name": "regions",
-    "outputs": [{
-        "name": "ipfsHash",
-        "type": "string"
-    },
-    {
-        "name": "accessCost",
-        "type": "uint256"
-    },
-    {
-        "name": "totalContributions",
-        "type": "uint256"
-    }
-],
-"payable": false,
-"stateMutability": "view",
-"type": "function"
-},
-{
-    "constant": true,
-    "inputs": [{
-        "name": "",
-        "type": "uint256"
-    }],
-    "name": "handouts",
-    "outputs": [{
-        "name": "handoutId",
-        "type": "uint256"
-    },
-    {
-        "name": "owner",
-        "type": "address"
-    },
-    {
-        "name": "ipfsHash",
-        "type": "string"
-    }
-],
-"payable": false,
-"stateMutability": "view",
-"type": "function"
-},
-{
-    "constant": false,
-    "inputs": [{
-        "name": "_ipfsHash",
-        "type": "string"
-    }],
-    "name": "addHandout",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-},
-{
-    "constant": false,
-    "inputs": [{
-        "name": "_regionId",
-        "type": "uint256"
-    }],
-    "name": "getRegion",
-    "outputs": [],
-    "payable": true,
-    "stateMutability": "payable",
-    "type": "function"
-},
-{
-    "constant": true,
-    "inputs": [],
-    "name": "getMyRegionHash",
-    "outputs": [{
-        "name": "",
-        "type": "string"
-    }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "constant": true,
-    "inputs": [],
-    "name": "checkDeposit",
-    "outputs": [{
-        "name": "",
-        "type": "uint256"
-    }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "constant": true,
-    "inputs": [],
-    "name": "getNumberOfContribs",
-    "outputs": [{
-        "name": "",
-        "type": "uint256"
-    }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "constant": false,
-    "inputs": [{
-        "name": "_regionId",
-        "type": "uint256"
-    },
-    {
-        "name": "ipfsHash",
-        "type": "string"
-    }
-],
-"name": "verifyHandout",
-"outputs": [],
-"payable": false,
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-    "constant": false,
-    "inputs": [],
-    "name": "getHandout",
-    "outputs": [{
-        "name": "handoutId",
-        "type": "uint256"
-    },
-    {
-        "name": "contributor",
-        "type": "address"
-    },
-    {
-        "name": "ipfsHash",
-        "type": "string"
-    }
-],
-"payable": false,
-"stateMutability": "nonpayable",
-"type": "function"
-},
-    {
-        "constant": true,
-        "inputs": [{
-            "name": "",
-            "type": "address"
-        }],
-        "name": "myHash",
-        "outputs": [{
-            "name": "",
-            "type": "string"
-        }],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [],
-        "name": "payAmount",
-        "outputs": [],
-        "payable": true,
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [{
-            "name": "",
-            "type": "address"
-        }],
-        "name": "contribStats",
-        "outputs": [{
-            "name": "numberOfContribs",
-            "type": "uint256"
-        },
-        {
-            "name": "numberOfHandouts",
-            "type": "uint256"
-        }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "constant": false,
-    "inputs": [{
-        "name": "_ipfsHash",
-        "type": "string"
-    }],
-    "name": "createRegion",
-    "outputs": [{
-        "name": "",
-        "type": "uint256"
-    }],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-},
-{
-    "constant": true,
-    "inputs": [{
-        "name": "_regionId",
-        "type": "uint256"
-    }],
-    "name": "getRegionCost",
-    "outputs": [{
-        "name": "",
-        "type": "uint256"
-    }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-},
-{
-    "constant": true,
-    "inputs": [],
-    "name": "getMyHandout",
-    "outputs": [{
-        "name": "handoutId",
-        "type": "uint256"
-    },
-    {
-        "name": "contributor",
-        "type": "address"
-    },
-    {
-        "name": "ipfsHash",
-        "type": "string"
-    }
-],
-"payable": false,
-"stateMutability": "view",
-"type": "function"
-},
-{
-    "constant": true,
-    "inputs": [{
-        "name": "",
-        "type": "address"
-    }],
-    "name": "deposits",
-    "outputs": [{
-        "name": "",
-        "type": "uint256"
-    }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-}
-]);
-MyContract.options.address = "0x25f5e3dfe238054b4235aed7c24967137128438f";
-
 var startLatitude = 12.897835;
 var startLongitude = 77.576369;
 var latitudeDiff = -0.004531999999999907;
@@ -353,7 +75,7 @@ function pushDataToIPFS(dataAggregate) {
     });
 }
 
-function addHandout(ipfsHash) {
+/* function addHandout(ipfsHash) {
     web3.eth.getAccounts((err, accounts) => {
         console.log("reached here");
         MyContract.methods.addHandout(String(ipfsHash)).send({
@@ -362,7 +84,7 @@ function addHandout(ipfsHash) {
             console.log(err, result);
         });
     });
-}
+} */
 
 function handleTrackingClick() {
     if (isTracking) {
@@ -378,7 +100,7 @@ function handleTrackingClick() {
 
 window.handleTrackingClick = handleTrackingClick;
 
-async function updateNumberOfHandouts() {
+/* async function updateNumberOfHandouts() {
     let accounts = await web3.eth.getAccounts();
     await MyContract.methods.getNumberOfHandouts().call({
         from: accounts[0]
@@ -389,9 +111,9 @@ async function updateNumberOfHandouts() {
             alert("Transaction Failed");
         }
     });
-}
+} */
 
-async function updateNumberOfContribs() {
+/* async function updateNumberOfContribs() {
     let accounts = await web3.eth.getAccounts();
     await MyContract.methods.getNumberOfContribs().call({
         from: accounts[0]
@@ -402,9 +124,9 @@ async function updateNumberOfContribs() {
             alert("Transaction Failed");
         }
     });
-}
+} */
 
-function loadBalance() {
+/* function loadBalance() {
     web3.eth.getAccounts().then((accounts, err) => {
         web3.eth.getBalance(accounts[0]).then((result, err) => {
             let ether = web3.utils.fromWei(result, 'ether');
@@ -412,7 +134,7 @@ function loadBalance() {
             document.getElementById("user_address").innerHTML = accounts[0];
         });
     });
-}
+} */
 
 function getRegionId(latitude, longitude) {
     var lati = Math.abs(Math.floor((latitude - startLatitude) / latitudeDiff));
@@ -421,8 +143,71 @@ function getRegionId(latitude, longitude) {
     return 0;
 }
 
+function calculateRegion(lat, lon) {
+    if(!((lat <= 90) && (lat >= -90))) {
+        console.log("Invalid Latitude");
+        return -1;
+    }
+    if (!((lon <= 180) && (lat >= -180))) {
+        console.log("Invalid Longitude");
+        return -1;
+    }
+    if(lon == 180) lon = -180;
+    if(lat == -90) lat = -89; 
+    lat = (90 - lat + 1);
+    lon = (lon >= 0) ? (lon+1) : (361 + lon);
+    return (lat*1000 + lon);
+}
+
+/**
+ * getGPSLocation - Uses Chrome GeoLocation API to fetch GPS Coordinates
+ * Returns Promise
+ *  Resolve - [latitude, longitude]
+ *  Reject - Error
+ */
+async function getGPSLocation() {
+    return new Promise(function (resolve, reject) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            resolve([position.coords.latitude, position.coords.longitude]);
+        }, function(error) {
+            if (error.code == error.PERMISSION_DENIED) {
+                alert("Turn On GeoLocation API");
+                reject(Error("Turn On GeoLocation API"));
+            }
+        });
+    });
+}
+
+/**
+ * getRegion - Used to get Region Id of given coordinates
+ *  Params - Latitude, Longitude
+ *  Returns Promise
+ */
+async function getRegion(lat, lon) {
+    return new Promise((resolve, reject) => {
+        let regionId = calculateRegion(Math.ceil(lat), Math.floor(lon));
+        
+        if(regionId == -1) {
+            reject(Error("Check if your GPS Device is working properly..."));
+        }
+        else {
+            resolve(regionId);
+        }
+    });
+}
+
+/**
+ * renderUserLocationRegion - Renders Region in which User is.
+ */
+async function renderUserLocationRegion() {
+    const getGPSPromise = getGPSLocation();
+    let coords = await getGPSPromise;
+
+    const getRegionPromise = getRegion(coords[0],coords[1]);
+    let regionId = await getRegionPromise;
+
+    console.log(regionId);
+}
+
 window.onload = function() {
-    loadBalance();
-    updateNumberOfContribs();
-    updateNumberOfHandouts();
 }
