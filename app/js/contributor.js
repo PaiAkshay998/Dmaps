@@ -1,237 +1,158 @@
+import { abi, contractAddress } from '../contractInfo';
 const ethers = require('ethers');
+const zlib = require('zlib');
 const Wallet = ethers.Wallet;
 const Contract = ethers.Contract;
 const utils = ethers.utils;
 const providers = ethers.providers;
 
-var wallet = {
-    address: "0x52E338656b5409ECf2a45D4d349Fa7226fCF20ec",
-    privateKey: "0x66fba1cf820478e61494570a71c24547c9ff943932c9fd08776b2b5982ec5439",
-    network: "",
-    etherscanProvider: "",
-    provide: ""
-};
+let wallet,
+    contract,
+    handout = [],
+    timer,
+    isTracking = false;
 
-var startLatitude = 12.897835;
-var startLongitude = 77.576369;
-var latitudeDiff = -0.004531999999999907;
-var longitudeDiff = 0.01386200000000315;
-var contribEndPosLatitude, contribEndPosLongitude;
-
-let isTracking = false;
-var tracker;
-
-function startTracking() {
-    console.log("In Here");
-    var contribStartPosLatitude, contribStartPosLongitude, startRegion = 0;
-    var startLat, endLat, startLon, endLon;
-    navigator.geolocation.getCurrentPosition(function showPosition(position) {
-        endLat = position.coords.latitude;
-        endLon = position.coords.longitude;
-    });
-    var dataAggregate = [];
-    var timeElapsed = 0;
-    tracker = window.setInterval(async function () {
-        navigator.geolocation.getCurrentPosition(function showPosition(position) {
-            startLat = endLat;
-            startLon = endLon;
-            endLat = position.coords.latitude;
-            endLon = position.coords.longitude;
-        });
-        dataAggregate.push([startRegion, startLat, startLon, endLat, endLon]);
-        document.getElementById("points_aggregate").innerHTML = dataAggregate.length;
-        console.log(String(dataAggregate));
-        timeElapsed++;
-        console.log(dataAggregate.length);
-        // after aggregating for five minutes, push to ipfs
-        if (timeElapsed == 7) {
-            dataAggregate.shift();
-            dataAggregate.shift();
-            dataAggregate.shift();
-            console.log(dataAggregate);
-            pushDataToIPFS(dataAggregate);
-            dataAggregate = [];
-            timeElapsed = 0;
-            handleTrackingClick();
-        }
-    }, 1000);
-}
-
-function stopTracking() {
-    window.clearInterval(tracker);
-}
-
-function pushDataToIPFS(dataAggregate) {
-    const ipfs = IpfsApi('localhost', 5001);
-    let json = {
-        "data": []
+function intializeWallet() {
+    var wallet = {
+        address: "0x52E338656b5409ECf2a45D4d349Fa7226fCF20ec",
+        privateKey: "0x66fba1cf820478e61494570a71c24547c9ff943932c9fd08776b2b5982ec5439",
     };
-    for (var i = 0; i < dataAggregate.length; i++) {
-        let data = {
-            startRegion: dataAggregate[i][0],
-            contribStartPosLatitude: dataAggregate[i][1],
-            contribStartPosLongitude: dataAggregate[i][2],
-            contribEndPosLatitude: dataAggregate[i][3],
-            contribEndPosLongitude: dataAggregate[i][4],
-        };
-        json['data'].push(data);
-    }
-    console.log(json);
-    let hash = '';
-    ipfs.files.add(Buffer.from(JSON.stringify(json)), (err, result) => {
-        if (err) {
-            console.error(err)
-            return
-        }
-        hash = result[0].hash;
-        console.log(hash, result[0].hash);
-        addHandout(hash);
-    });
+
+    wallet.network = providers.networks.kovan;
+    wallet.etherscanProvider = new providers.EtherscanProvider(wallet.network);
+    wallet.provider = providers.getDefaultProvider(wallet.network);
+    wallet.user = new Wallet(wallet.privateKey, wallet.provider);
+
+    return wallet;
 }
 
-/* function addHandout(ipfsHash) {
-    web3.eth.getAccounts((err, accounts) => {
-        console.log("reached here");
-        MyContract.methods.addHandout(String(ipfsHash)).send({
-            from: accounts[0]
-        }, function (err, result) {
-            console.log(err, result);
-        });
-    });
-} */
-
-function handleTrackingClick() {
-    if (isTracking) {
-        isTracking = false;
-        document.getElementById("control_tracking").innerHTML = "Start Tracking";
-        stopTracking();
-    } else {
-        isTracking = true;
-        document.getElementById("control_tracking").innerHTML = "Stop Tracking";
-        startTracking();
-    }
+function initializeContract() {
+    return new Contract(contractAddress, abi, wallet.user);
 }
 
-window.handleTrackingClick = handleTrackingClick;
-
-/* async function updateNumberOfHandouts() {
-    let accounts = await web3.eth.getAccounts();
-    await MyContract.methods.getNumberOfHandouts().call({
-        from: accounts[0]
-    }, function (err, result) {
+function getNumberOfHandouts() {
+    contract.functions.getNumberOfHandouts().then((result) => {
         if (result) {
             document.getElementById("number_handouts").innerHTML = result;
         } else {
-            alert("Transaction Failed");
+            alert("Unable to fetch details from Contract");
         }
     });
-} */
+}
 
-/* async function updateNumberOfContribs() {
-    let accounts = await web3.eth.getAccounts();
-    await MyContract.methods.getNumberOfContribs().call({
-        from: accounts[0]
-    }, function (err, result) {
+function getNumberOfContributions() {
+    contract.functions.getNumberOfContribs().then((result) => {
         if (result) {
             document.getElementById("number_contribs").innerHTML = result;
         } else {
-            alert("Transaction Failed");
+            alert("Unable to fetch details from Contract... Check your internet connection.");
         }
     });
-} */
+}
 
-/* function loadBalance() {
-    web3.eth.getAccounts().then((accounts, err) => {
-        web3.eth.getBalance(accounts[0]).then((result, err) => {
-            let ether = web3.utils.fromWei(result, 'ether');
-            document.getElementById("user_balance").innerHTML = ether;
-            document.getElementById("user_address").innerHTML = accounts[0];
+function loadUserBalance() {
+    document.getElementById("user_address").innerHTML = wallet.address;
+    wallet.provider.getBalance(wallet.address).then((balance) => {
+        let ether = utils.formatEther(balance);
+        document.getElementById("user_balance").innerHTML = ether;
+    });
+}
+
+function loadUserDetails() {
+    getNumberOfContributions();
+    getNumberOfHandouts();
+    loadUserBalance();
+}
+
+function setStatus(status) {
+    document.getElementById("app_status").innerHTML = status;
+}
+
+function trackCurrentPoint() {
+    navigator.geolocation.getCurrentPosition(function (position) {
+        handout.push([position.coords.latitude, position.coords.longitude]);
+        document.getElementById("points_aggregate").innerHTML = handout.length;
+    }, function (error) {
+        if (error.code == error.PERMISSION_DENIED) {
+            reject(Error("Turn On GeoLocation API"));
+        }
+    });
+}
+
+async function compressHandout(handout) {
+    var buffer = new Buffer(handout, 'utf8');
+    return new Promise((resolve, reject) => {
+        zlib.deflate(buffer, function (err, data) {
+            resolve(data);
         });
     });
-} */
-
-function getRegionId(latitude, longitude) {
-    var lati = Math.abs(Math.floor((latitude - startLatitude) / latitudeDiff));
-    var longi = Math.abs(Math.floor((longitude - startLongitude) / longitudeDiff));
-    var regionId = lati * 3 + longi;
-    return 0;
 }
 
-function calculateRegion(lat, lon) {
-    if(!((lat <= 90) && (lat >= -90))) {
-        console.log("Invalid Latitude");
-        return -1;
-    }
-    if (!((lon <= 180) && (lat >= -180))) {
-        console.log("Invalid Longitude");
-        return -1;
-    }
-    if(lon == 180) lon = -180;
-    if(lat == -90) lat = -89; 
-    lat = (90 - lat + 1);
-    lon = (lon >= 0) ? (lon+1) : (361 + lon);
-    return (lat*1000 + lon);
-}
-
-/**
- * getGPSLocation - Uses Chrome GeoLocation API to fetch GPS Coordinates
- * Returns Promise
- *  Resolve - [latitude, longitude]
- *  Reject - Error
- */
-async function getGPSLocation() {
-    return new Promise(function (resolve, reject) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-            resolve([position.coords.latitude, position.coords.longitude]);
-        }, function(error) {
-            if (error.code == error.PERMISSION_DENIED) {
-                alert("Turn On GeoLocation API");
-                reject(Error("Turn On GeoLocation API"));
+async function uploadToIPFS(compressedHandout) {
+    const ipfs = IpfsApi('localhost', 5001);
+    return new Promise((resolve, reject) => {
+        ipfs.files.add(Buffer.from(compressedHandout), (err, result) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                let hash = result[0].hash;
+                resolve(hash);
             }
         });
     });
 }
 
-/**
- * getRegion - Used to get Region Id of given coordinates
- *  Params - Latitude, Longitude
- *  Returns Promise
- */
-async function getRegion(lat, lon) {
+function addHandout(ipfsHash) {
     return new Promise((resolve, reject) => {
-        let regionId = calculateRegion(Math.ceil(lat), Math.floor(lon));
-        
-        if(regionId == -1) {
-            reject(Error("Check if your GPS Device is working properly..."));
-        }
-        else {
-            resolve(regionId);
-        }
+        let addHandoutCallback = contract.functions.addHandout(ipfsHash);
+        addHandoutCallback.then((transaction) => {
+            wallet.provider.waitForTransaction(transaction.hash).then(transaction => {
+                resolve(transaction);
+            }).catch(err => {
+                reject(err);
+            });
+        });
     });
 }
 
-/**
- * renderUserLocationRegion - Renders Region in which User is.
- */
-async function renderUserLocationRegion() {
-    const getGPSPromise = getGPSLocation();
-    let coords = await getGPSPromise;
-
-    const getRegionPromise = getRegion(coords[0],coords[1]);
-    let regionId = await getRegionPromise;
-
-    console.log(regionId);
+async function processHandout(handout) {
+    let compressedHandout = await compressHandout(handout);
+    setStatus("Compressed File....");
+    let ipfsHash = await uploadToIPFS(compressedHandout);
+    setStatus("Uploaded to IPFS at " + ipfsHash + "... Transaction being made with contract");
+    let transactionHash = await addHandout(ipfsHash);
+    setStatus("Transaction Mined at Hash : " + transactionHash.hash +
+        "\nBlock Number: " + transactionHash.blockNumber +
+        "\nBlock Hash: " + transactionHash.blockHash);
 }
 
-/**
- * initializeWallet - Initializes Global Wallet with provider and network
- */
-function intializeWallet() {
-    wallet.network = providers.networks.kovan;
-    wallet.etherscanProvider = new providers.EtherscanProvider(wallet.network);
-    wallet.provider = providers.getDefaultProvider(wallet.network);
+function startTracking() {
+    timer = setInterval(trackCurrentPoint, 1000);
 }
+
+function stopTracking() {
+    clearInterval(timer);
+    let json = JSON.stringify(handout);
+    processHandout(json);
+    handout.length = 0;
+}
+
+function handleTrackingClick() {
+    if (isTracking) {
+        document.getElementById("control_tracking").innerHTML = "Start Tracking";
+        stopTracking();
+    } else {
+        document.getElementById("control_tracking").innerHTML = "Stop Tracking";
+        setStatus("Tracking...");
+        startTracking();
+    }
+    isTracking = !isTracking;
+}
+window.handleTrackingClick = handleTrackingClick;
 
 window.onload = function() {
-    intializeWallet();
+    wallet = intializeWallet();
+    contract = initializeContract();
+    loadUserDetails();
 }

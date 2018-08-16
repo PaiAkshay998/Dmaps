@@ -10,6 +10,7 @@
   "homepage": "",
   "devDependencies": {},
   "dependencies": {
-    "ethers": "^3.0.26"
+    "ethers": "^3.0.26",
+    "zlib": "^1.0.5"
   }
 }

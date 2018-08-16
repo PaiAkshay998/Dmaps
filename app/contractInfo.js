@@ -1,4 +1,4 @@
-var MyContract = new web3.eth.Contract([{
+export const abi = [{
         "constant": true,
         "inputs": [],
         "name": "getNumberOfHandouts",
@@ -266,6 +266,6 @@ var MyContract = new web3.eth.Contract([{
         "stateMutability": "view",
         "type": "function"
     }
-]);
+];
 
-MyContract.options.address = "0x25f5e3dfe238054b4235aed7c24967137128438f";
+export const contractAddress = "0x25f5e3dfe238054b4235aed7c24967137128438f";

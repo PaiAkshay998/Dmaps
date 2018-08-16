@@ -404,3 +404,60 @@ window.onload = async function () {
     ctx.fillStyle = "blue";
     await enduser();
 }
+
+/**
+ * getGPSLocation - Uses Chrome GeoLocation API to fetch GPS Coordinates
+ * Returns Promise
+ *  Resolve - [latitude, longitude]
+ *  Reject - Error
+ */
+async function getGPSLocation() {
+    return new Promise(function (resolve, reject) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            resolve([position.coords.latitude, position.coords.longitude]);
+        }, function (error) {
+            if (error.code == error.PERMISSION_DENIED) {
+                alert("Turn On GeoLocation API");
+                reject(Error("Turn On GeoLocation API"));
+            }
+        });
+    });
+}
+
+/**
+ * getRegionId - Used to get Region Id of given coordinates
+ *  Params - Latitude, Longitude
+ *  Returns Promise
+ */
+async function getRegionId(lat, lon) {
+    return new Promise((resolve, reject) => {
+        if (!((lat <= 90) && (lat >= -90))) {
+            console.log("Invalid Latitude");
+            reject(Error("Invalid Latitude"));
+        }
+        if (!((lon <= 180) && (lat >= -180))) {
+            console.log("Invalid Longitude");
+            reject(Error("Invalid Longitude"));
+        }
+        if (lon == 180) lon = -180;
+        if (lat == -90) lat = -89;
+        lat = (90 - lat + 1);
+        lon = (lon >= 0) ? (lon + 1) : (361 + lon);
+
+        let regionId = lat * 1000 + lon;
+        resolve(regionId);
+    });
+}
+
+/**
+ * renderUserLocationRegion - Renders Region in which User is.
+ */
+async function renderUserLocationRegion() {
+    const getGPSPromise = getGPSLocation();
+    let coords = await getGPSPromise;
+
+    const getRegionIdPromise = getRegionId(coords[0], coords[1]);
+    let regionId = await getRegionIdPromise;
+
+    console.log(regionId);
+}
